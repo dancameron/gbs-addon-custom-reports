@@ -1,7 +1,7 @@
 <?php
 if ( empty( $columns ) || empty( $records ) ) {
 	do_action('gb_report_view');
-	gb_e( 'No Data TREST' );
+	gb_e( 'No Data' );
 } else {
 	global $gb_report_pages;
 ?>

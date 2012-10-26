@@ -18,8 +18,17 @@ class Group_Buying_Reports_VE extends Group_Buying_Controller {
 			add_action( 'group_buying_template_reports/view.php', array( get_class(), 'setup_new_template' ), 100, 1 );
 		
 		}
+
 		// Add the navigation
 		add_action( 'gb_report_view', array( get_class(), 'add_navigation' ), 1000 );
+
+		// Enqueue
+		add_action( 'init', array( get_class(), 'enqueue' ) );
+	}
+
+	public function enqueue() {
+		wp_enqueue_script( 'group-buying-admin-deal', GB_URL . '/resources/js/deal.admin.gbs.js', array( 'jquery', 'jquery-ui-draggable' ), Group_Buying::GB_VERSION );
+		wp_enqueue_style( 'group-buying-admin-deal', GB_URL . '/resources/css/deal.admin.gbs.css' );
 	}
 
 	public function setup_new_template( $view ) {
@@ -61,7 +70,8 @@ class Group_Buying_Reports_VE extends Group_Buying_Controller {
 		$report->columns = $columns;
 		
 		// Query deals since they hold the expiration date
-		$future = current_time( 'timestamp' )+( (int)$_GET['days']*86400 ) ;
+		$future = current_time( 'timestamp' )+( (int)$_GET['days']*86400 );
+		$filter = ( isset( $_REQUEST['voucher_exp'] ) && strtotime( $_REQUEST['voucher_exp'] ) > current_time( 'timestamp' ) ) ? strtotime( $_REQUEST['voucher_exp'] ) : current_time( 'timestamp' );
 		$args = array(
 			'fields' => 'ids',
 			'post_type' => Group_Buying_Deal::POST_TYPE,
@@ -70,13 +80,12 @@ class Group_Buying_Reports_VE extends Group_Buying_Controller {
 			'meta_query' => array(
 				array(
 					'key' => '_voucher_expiration_date',
-					'value' => array( current_time( 'timestamp' ), $future ),
+					'value' => array( current_time( 'timestamp' ), $filter ),
 					'compare' => 'BETWEEN'
 				)
 			)
 		);
 		$deals = new WP_Query( $args );
-
 		// Build Records
 		$voucher_array = array();
 		foreach ( $deals->posts as $deal_id ) {
@@ -91,19 +100,21 @@ class Group_Buying_Reports_VE extends Group_Buying_Controller {
 				if ( is_a( $voucher, 'Group_Buying_Voucher' ) ) {
 					$purchase_id = $voucher->get_purchase_id();
 					$account_id = $voucher->get_account();
-					$account = Group_Buying_Account::get_instance( $account_id );
-					$user = $account->get_user();
-
-					$voucher_array[] = array(
-						'voucher_exp' => $voucher->get_expiration_date(),
-						'name' => $account->get_name(),
-						'email' => $user->email,
-						'id' => $purchase_id,
-						'date' => date( 'F j\, Y H:i:s', get_the_time( 'U', $purchase_id ) ),
-						'deal' => $deal->get_title(),
-						'exp' => $deal->get_expiration_date(),
-						'deal_id' => $deal->get_id(),
-					);
+					$account = Group_Buying_Account::get_instance_by_id( $account_id );
+					if ( is_a( $account, 'Group_Buying_Account' ) ) {
+						$user = $account->get_user();
+						error_log( "user: " . print_r( $user, true ) );
+						$voucher_array[] = array(
+							'voucher_exp' => $voucher->get_expiration_date(),
+							'name' => $account->get_name(),
+							'email' => $user->data->user_email,
+							'id' => $purchase_id,
+							'date' => date( 'F j\, Y H:i:s', get_the_time( 'U', $purchase_id ) ),
+							'deal' => $deal->get_title(),
+							'exp' => date( 'F j\, Y H:i:s', $deal->get_expiration_date() ),
+							'deal_id' => $deal->get_id(),
+						);
+					}
 
 				}
 			}
@@ -124,9 +135,11 @@ class Group_Buying_Reports_VE_Addon extends Group_Buying_Controller {
 	}
 
 	public static function gb_add_on( $addons ) {
+		$report = Group_Buying_Reports::get_instance( 'voucher_exp' );
+		$link = add_query_arg(array('report' => 'voucher_exp'), $report->get_url() );
 		$addons['gb_simple_charities'] = array(
 			'label' => self::__( 'Custom Report' ),
-			'description' => self::__( 'Generate based on expiration.' ),
+			'description' => sprintf( self::__( 'Generate report of vouchers based on expiration. <a href="%s" class="button">Report</a>' ), $link ),
 			'files' => array(
 				__FILE__,
 				dirname( __FILE__ ) . '/library/template-tags.php',
