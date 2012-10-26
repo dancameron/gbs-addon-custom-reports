@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: Group Buying Addon - Reporting (voucher expiration)
+Plugin Name: Group Buying Addon - Reporting
 Version: 1.2
 Plugin URI: http://groupbuyingsite.com/marketplace
 Description: Adds a custom GBS report

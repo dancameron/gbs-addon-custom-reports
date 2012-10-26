@@ -12,8 +12,7 @@ class Group_Buying_Reports_VE extends Group_Buying_Controller {
 		// Filter title
 		add_filter( 'gb_reports_get_title', array( get_class(), 'filter_title' ), 10, 2 );
 
-		// Templates
-		
+		// Templates	
 		if ( !version_compare( Group_Buying::GB_VERSION, '4.0.1', '>=' ) ) { // If the action doesn't exist, pre 4.0.5, add the necessary actions
 			add_action( 'group_buying_template_reports/view.php', array( get_class(), 'setup_new_template' ), 100, 1 );
 		
