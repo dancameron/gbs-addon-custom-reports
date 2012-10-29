@@ -33,13 +33,13 @@ class Group_Buying_Reports_VE extends Group_Buying_Controller {
 
 	public function setup_new_template( $view ) {
 		if ( $_GET['report'] == self::REPORT_SLUG ) {
-			return GB_RP_PATH . '/views/report.php';	
+			return GB_REPORT_PATH . '/views/report.php';	
 		}
 		return $view;
 	}
 
 	public function add_navigation() {
-		include GB_RP_PATH . '/views/navigation.php';
+		include GB_REPORT_PATH . '/views/navigation.php';
 	}
 
 	public function filter_title( $title, $report ) {
@@ -103,9 +103,8 @@ class Group_Buying_Reports_VE extends Group_Buying_Controller {
 					$account = Group_Buying_Account::get_instance_by_id( $account_id );
 					if ( is_a( $account, 'Group_Buying_Account' ) ) {
 						$user = $account->get_user();
-						error_log( "user: " . print_r( $user, true ) );
 						$voucher_array[] = array(
-							'voucher_exp' => $voucher->get_expiration_date(),
+							'voucher_exp' => date( 'F j\, Y', $voucher->get_expiration_date() ),
 							'name' => $account->get_name(),
 							'email' => $user->data->user_email,
 							'id' => $purchase_id,
@@ -135,9 +134,12 @@ class Group_Buying_Reports_VE_Addon extends Group_Buying_Controller {
 	}
 
 	public static function gb_add_on( $addons ) {
-		$report = Group_Buying_Reports::get_instance( 'voucher_exp' );
-		$link = add_query_arg(array('report' => 'voucher_exp'), $report->get_url() );
-		$addons['gb_simple_charities'] = array(
+		if ( self::using_permalinks() ) {
+			$link = add_query_arg( array( 'report' => 'voucher_exp' ), home_url( trailingslashit( get_option( Group_Buying_Reports::REPORTS_PATH_OPTION ) ) ) );
+		} else {
+			$link = add_query_arg( array( Group_Buying_Reports::REPORT_QUERY_VAR => 1, 'report' => 'voucher_exp'  ), home_url() );
+		}
+		$addons['gb_voucher_reporting'] = array(
 			'label' => self::__( 'Custom Report' ),
 			'description' => sprintf( self::__( 'Generate report of vouchers based on expiration. <a href="%s" class="button">Report</a>' ), $link ),
 			'files' => array(

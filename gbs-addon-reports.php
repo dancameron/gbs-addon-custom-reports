@@ -12,7 +12,7 @@ Text Domain: group-buying
 Domain Path: /lang
 
 */
-define ('GB_RP_PATH', WP_PLUGIN_DIR . '/' . basename( dirname( __FILE__ ) ) );
+define ('GB_REPORT_PATH', WP_PLUGIN_DIR . '/' . basename( dirname( __FILE__ ) ) );
 
 add_action('plugins_loaded', 'gb_load_custom_reporting');
 function gb_load_custom_reporting() {
