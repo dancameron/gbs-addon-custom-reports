@@ -27,8 +27,9 @@ class Group_Buying_Reports_VE extends Group_Buying_Controller {
 	}
 
 	public function enqueue() {
-		wp_enqueue_script( 'group-buying-admin-deal', GB_URL . '/resources/js/deal.admin.gbs.js', array( 'jquery', 'jquery-ui-draggable' ), Group_Buying::GB_VERSION );
-		wp_enqueue_style( 'group-buying-admin-deal', GB_URL . '/resources/css/deal.admin.gbs.css' );
+		// Timepicker
+		wp_enqueue_script( 'gb_frontend_deal_submit' );
+		wp_enqueue_style( 'gb_frontend_deal_submit_timepicker_css' );
 	}
 
 	public function setup_new_template( $view ) {
