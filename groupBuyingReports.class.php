@@ -172,12 +172,12 @@ class Group_Buying_Reports_SS extends Group_Buying_Controller {
 						$total_price += $price;
 						$total_price_qty += $price*$data['qty'];
 					}
-					$average_price = ($total_price_qty/$total_qty);
+					$average_price = ($total_price_qty/$total_qty);			
 					// Records are based on the deal and the results of all of it's purchases.
 					$purchase_array[] = apply_filters( 'gb_sales_summary_record_item', array(
 							'deal_name' => $deal_title,
 							'qty' => $total_qty,
-							'price' => gb_get_formatted_money( $average_price ),
+							'price' => self::gb_get_formatted_money( $average_price ),
 							'credits' => $total_credits,
 							'earn' => ( $total_qty * $average_price ) - $total_credits
 						), $deal );
@@ -202,6 +202,24 @@ class Group_Buying_Reports_SS extends Group_Buying_Controller {
 			}
 		}
 		$report->records = apply_filters( 'set_sales_summary_report_records', $purchase_array );
+	}
+	
+	private static function gb_get_formatted_money( $amount, $decimals = TRUE ) {
+		$orig_amount = $amount;
+		$symbol = gb_get_currency_symbol( FALSE );
+		$number = number_format( floatval( $amount ), 2 );
+		if ( strstr( $symbol, '%' ) ) {
+			$string = str_replace( '%', $number, $symbol );
+		} else {
+			$string = $symbol . $number;
+		}
+		if ( $number < 0 ) {
+			$string = '-'.str_replace( '-', '', $string );
+		}
+		if ( !$decimals ) {
+			$string = str_replace('.00','', $string);
+		}
+		return $string;
 	}
 
 }
