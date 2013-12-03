@@ -111,58 +111,50 @@ class Group_Buying_Reports_SS extends Group_Buying_Controller {
 				$prices = array();
 				foreach ( $purchases->posts as $purchase_id ) {
 					$purchase = Group_Buying_Purchase::get_instance( $purchase_id );
-					$payment_ids = $purchase->get_payments();
-					// Loop through all payments for purchase
-					foreach ( $payment_ids as $payment_id ) {
-						$payment = Group_Buying_Payment::get_instance( $payment_id );
-						$payment_items = $payment->get_deals();
-						//error_log( 'payment items: ' . print_r( $payment_items, TRUE ) );
-						foreach ( $payment_items as $key_item_id => $payment_key ) {
-							/*/
-								Example: 
-								(
-								    [0] => Array
-								        (
-								            [deal_id] => 499
-								            [quantity] => 5
-								            [data] => Array
-								                (
-								                )
+					$purchase_items = $purchase->get_products();
+					foreach ( $purchase_items as $item_data => $purchase_data ) {
+						/*/
+							Example: 
+							(
+							    [0] => Array
+							        (
+							            [deal_id] => 499
+							            [quantity] => 5
+							            [data] => Array
+							                (
+							                )
 
-								            [price] => 200
-								            [unit_price] => 40
-								            [payment_method] => Array
-								                (
-								                    [Account Credit (Affiliate)] => 200
-								                )
+							            [price] => 200
+							            [unit_price] => 40
+							            [payment_method] => Array
+							                (
+							                    [Account Credit (Affiliate)] => 200
+							                )
 
-								        )
+							        )
 
-								)
-							/**/
-							foreach ( $payment_key as $payment_data ) {
-								// Info only useful if the data is associated with the deal_id
-								if ( $deal_id == $key_item_id ) {
-									// Make sure an array is set for this price
-									if ( !array_key_exists( $payment_data['unit_price'], $prices ) ) {
-										$prices[$payment_data['unit_price']] = array();
-									}
+							)
+						/**/
+						// Info only useful if the data is associated with the deal_id
+						if ( $deal_id == $purchase_data['deal_id'] ) {
+							// Make sure an array is set for this price
+							if ( !array_key_exists( $purchase_data['unit_price'], $prices ) ) {
+								$prices[$purchase_data['unit_price']] = array();
+							}
 
-									// Set the quantity purchased
-									$prices[$payment_data['unit_price']]['qty'] += $payment_data['quantity'];
+							// Set the quantity purchased
+							$prices[$purchase_data['unit_price']]['qty'] += $purchase_data['quantity'];
 
-									// Credits
-									if ( !isset( $prices[$payment_data['unit_price']]['credits'] ) ) {
-										$prices[$payment_data['unit_price']]['credits'] = 0;
-									}
+							// Credits
+							if ( !isset( $prices[$purchase_data['unit_price']]['credits'] ) ) {
+								$prices[$purchase_data['unit_price']]['credits'] = 0;
+							}
 
-									// Loop through each payment method to calculate credits used.
-									foreach ( $payment_data['payment_method'] as $payment_method => $total ) {
-										if ( in_array( $payment_method, $credit_payment_methods ) ) {
-											$prices[$payment_data['unit_price']]['credits'] += $total;
-										}
-									}
-								}	
+							// Loop through each payment method to calculate credits used.
+							foreach ( $purchase_data['payment_method'] as $payment_method => $total ) {
+								if ( in_array( $payment_method, $credit_payment_methods ) ) {
+									$prices[$purchase_data['unit_price']]['credits'] += $total;
+								}
 							}
 						}
 					}
