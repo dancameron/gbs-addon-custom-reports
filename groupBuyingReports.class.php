@@ -55,6 +55,7 @@ class Group_Buying_Reports_SS extends Group_Buying_Controller {
 		 * @var array
 		 */
 		$columns = array(
+			'deal_id' => self::__( 'ID' ),
 			'deal_name' => self::__( 'Deal Name' ),
 			'price' => self::__( 'Price' ),
 			'qty' => self::__( 'Quantity Sold' ),
@@ -165,21 +166,29 @@ class Group_Buying_Reports_SS extends Group_Buying_Controller {
 				 */
 				$multiple = ( count( $prices ) > 1 ) ? TRUE : FALSE ;
 				if ( $multiple ) {
+					$total_qty = 0;
+					$total_credits = 0;
+					$total_price = 0;
+					$total_price_qty = 0;
+					$total_earn = 0;
+						
 					// Get totals
 					foreach ( $prices as $price => $data ) {
 						$total_qty += $data['qty'];
 						$total_credits += $data['credits'];
 						$total_price += $price;
 						$total_price_qty += $price*$data['qty'];
+						$total_earn += ( $prices[$price]['qty'] * $price ) - $prices[$price]['credits'];
 					}
 					$average_price = ($total_price_qty/$total_qty);			
 					// Records are based on the deal and the results of all of it's purchases.
 					$purchase_array[] = apply_filters( 'gb_sales_summary_record_item', array(
+							'deal_id' => $deal_id,
 							'deal_name' => $deal_title,
 							'qty' => $total_qty,
 							'price' => self::gb_get_formatted_money( $average_price ),
 							'credits' => $total_credits,
-							'earn' => ( $total_qty * $average_price ) - $total_credits
+							'earn' => $total_earn
 						), $deal );
 				}
 
@@ -192,6 +201,7 @@ class Group_Buying_Reports_SS extends Group_Buying_Controller {
 				foreach ( $prices as $price => $data ) {
 					// Records are based on the deal and the results of all of it's purchases.
 					$purchase_array[] = apply_filters( 'gb_sales_summary_record_item', array(
+							'deal_id' => $deal_id,
 							'deal_name' => $deal_title,
 							'qty' => $prices[$price]['qty'],
 							'price' => gb_get_formatted_money( $price ),
@@ -199,7 +209,8 @@ class Group_Buying_Reports_SS extends Group_Buying_Controller {
 							'earn' => ( $prices[$price]['qty'] * $price ) - $prices[$price]['credits']
 						), $deal );
 				}
-			}
+
+			} // end loop of deals
 		}
 		$report->records = apply_filters( 'set_sales_summary_report_records', $purchase_array );
 	}
