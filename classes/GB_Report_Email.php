@@ -27,6 +27,7 @@ class GB_Report_Email extends Group_Buying_Controller {
 		} else {
 			add_action( self::CRON_HOOK, array( get_class(), 'maybe_send_reports' ) );
 		}
+		add_action( 'admin_init', array( get_class(), 'maybe_send_reports' ) );
 	}
 
 	function __construct() {}
@@ -61,7 +62,7 @@ class GB_Report_Email extends Group_Buying_Controller {
 						'option' => array(
 							'type' => 'text',
 							'default' => self::$send_tod,
-							'description' => self::__( 'Comma separated times of day, e.g. 3pm, 3am, 10:30am, etc..' )
+							'description' => self::__( 'Comma separated times of day, e.g. 3pm, 3am, 10:30am, etc..<br/>Current Time: ' ) . date('g:ia', current_time('timestamp') )
 							)
 						)
 					)
@@ -76,12 +77,12 @@ class GB_Report_Email extends Group_Buying_Controller {
 	////////////////////
 
 	public function maybe_send_reports() {
-		$times_of_day = explode(', ', self::$send_tod );
 		if ( !self::$last_email_sent ) {
 			self::update_last_email_sent_time( current_time('timestamp' ) );
 		}
+		$times_of_day = explode(', ', self::$send_tod );
 		foreach ( $times_of_day as $sttime ) {
-			$time_to_send = strtotime( $sttime );
+			$time_to_send = strtotime( 'today ' . $sttime );
 			// after the last send
 			if ( $time_to_send > self::$last_email_sent ) {
 				// meant to be sent already
@@ -89,7 +90,6 @@ class GB_Report_Email extends Group_Buying_Controller {
 					self::send_reports( $time_to_send );
 				}
 			}
-			
 		}
 	}
 
@@ -154,7 +154,10 @@ class GB_Report_Email extends Group_Buying_Controller {
 		$columns = GB_Reports_SS::get_summary_columns();
 		$time_of_summary_report = date( 'm/d/Y', $time_of_summary_report );
 		$records = GB_Reports_SS::get_purchase_array( $account_merchant_id, $time_of_summary_report, $time_of_summary_report, $filter );
-		return self::load_view_to_string( 'reports/view', array( 'columns' => $columns, 'records' => $records ) );
+		$report = self::load_view_to_string( 'reports/view', array( 'columns' => $columns, 'records' => $records ) );
+		$report = str_replace( '<span id="ff_desc" class="contrast_light message clearfix">Search the entire report, sort columns then download the CSV of the filtered report.</span>', '', $report );
+		$report = str_replace( '<p><input name="filter" id="filter_box" value="" maxlength="30" size="30" type="text" placeholder="Filter" class="text-input"> <input id="filter_clear_button" type="submit" value="Clear" class="alt_button"/></p>', '', $report );
+		return $report;
 	}
 
 	public function update_last_email_sent_time( $time ) {

@@ -6,7 +6,7 @@ function gb_get_sales_summary_report_url( $csv = FALSE )
 		$charity_slug = $_GET['id'];
 	}
 
-	$report = Group_Buying_Reports::get_instance( 'sales_summary' );
+	$report = SEC_Reports::get_instance( 'sales_summary' );
 	if ( $csv ) {
 		return apply_filters('gb_get_sales_summary_report_url', add_query_arg(array('report' => 'sales_summary'), $report->get_csv_url() ) );
 	}

@@ -8,6 +8,7 @@ class GB_Report_Addon extends Group_Buying_Controller {
 	public static function init() {
 		require_once('GB_Reports_SS.php');
 		require_once('GB_Report_Email.php');
+		require_once( GB_REPORT_PATH . '/library/template-tags.php');
 		
 		GB_Reports_SS::init();
 		GB_Report_Email::init();
