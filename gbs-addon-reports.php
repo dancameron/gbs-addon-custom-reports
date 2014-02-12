@@ -16,7 +16,7 @@ define ('GB_REPORT_PATH', WP_PLUGIN_DIR . '/' . basename( dirname( __FILE__ ) ) 
 
 add_action('plugins_loaded', 'gb_load_custom_reporting');
 function gb_load_custom_reporting() {
-	if (class_exists('Group_Buying_Controller')) {
+	if ( class_exists('Group_Buying_Controller') ) {
 		require_once('classes/GB_Report_Addon.php');
 		add_filter( 'gb_addons', array( 'GB_Report_Addon', 'gb_addon' ), 10, 1 );
 	}
