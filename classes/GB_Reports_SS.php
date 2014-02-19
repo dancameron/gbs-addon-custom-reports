@@ -86,6 +86,12 @@ class GB_Reports_SS extends Group_Buying_Controller {
 		
 		$credit_payment_methods = apply_filters( 'set_credit_purchases_methods', array( Group_Buying_Affiliate_Credit_Payments::PAYMENT_METHOD, Group_Buying_Account_Balance_Payments::PAYMENT_METHOD ) );
 
+
+		$total_qty = 0;
+		$total_price = 0;
+		$total_credits = 0;
+		$total_total = 0;
+		$total_earn = 0;
 		$purchase_array = array(); // records array
 		if ( $merchants_deal_ids ) {
 			// loop through all the deals
@@ -208,8 +214,16 @@ class GB_Reports_SS extends Group_Buying_Controller {
 				if ( $multiple ) {
 					$deal_title = ' &rsaquo; <em>' . $deal_title . '</em>';
 				}
+
 				// Loop through each price and make an entry.
 				foreach ( $prices as $price => $data ) {
+					// For totals
+					$total_qty += $prices[$price]['qty'];
+					$total_price += $price;
+					$total_credits += $prices[$price]['credits'];
+					$total_total += $prices[$price]['qty'] * $price;
+					$total_earn += ( $prices[$price]['qty'] * $price ) - $prices[$price]['credits'];
+
 					// Records are based on the deal and the results of all of it's purchases.
 					$purchase_array[] = apply_filters( 'gb_sales_summary_record_item', array(
 							'deal_id' => $deal_id,
@@ -217,13 +231,23 @@ class GB_Reports_SS extends Group_Buying_Controller {
 							'qty' => $prices[$price]['qty'],
 							'price' => gb_get_formatted_money( $price ),
 							'credits' => $prices[$price]['credits'],
-							'earn' => ( $prices[$price]['qty'] * $price ) - $prices[$price]['credits'],
-							'total' => $prices[$price]['qty'] * $price
+							'total' => $prices[$price]['qty'] * $price,
+							'earn' => ( $prices[$price]['qty'] * $price ) - $prices[$price]['credits']
 						), $deal );
 				}
 
 			} // end loop of deals
 		}
+		// Totals column
+		$purchase_array[] = apply_filters( 'gb_sales_summary_record_item', array(
+			'deal_id' => '', // or max($merchants_deal_ids)
+			'deal_name' => self::__('Totals'),
+			'qty' => $total_qty,
+			'price' => '<span style="text-decoration:overline;">'.gb_get_formatted_money( $total_price/$total_qty ).'</span>',
+			'credits' => $total_credits,
+			'total' => $total_total,
+			'earn' => $total_earn
+		), $deal );
 		$gb_report_pages = count( $purchase_array )/10; // set the global for later pagination
 		return $purchase_array;
 	}
