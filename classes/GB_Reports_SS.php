@@ -5,7 +5,7 @@ class GB_Reports_SS extends Group_Buying_Controller {
 
 	public static function init() {
 		parent::init();
-
+		
 		// Create Report
 		add_action( 'gb_reports_set_data', array( get_class(), 'create_report' ) );
 
@@ -65,6 +65,7 @@ class GB_Reports_SS extends Group_Buying_Controller {
 			'deal_name' => self::__( 'Deal Name' ),
 			'price' => self::__( 'Price' ),
 			'qty' => self::__( 'Quantity Sold' ),
+			'total' => self::__( 'Total' ),
 			'credits' => self::__( 'Credits Used' ),
 			'earn' => self::__( 'Earn' )
 		);
@@ -82,8 +83,7 @@ class GB_Reports_SS extends Group_Buying_Controller {
 		if ( $account_merchant_id ) {
 			$merchants_deal_ids = gb_get_merchants_deal_ids( $account_merchant_id );
 		}
-		$gb_report_pages = count( $merchants_deal_ids )/10; // set the global for later pagination
-
+		
 		$credit_payment_methods = apply_filters( 'set_credit_purchases_methods', array( Group_Buying_Affiliate_Credit_Payments::PAYMENT_METHOD, Group_Buying_Account_Balance_Payments::PAYMENT_METHOD ) );
 
 		$purchase_array = array(); // records array
@@ -180,6 +180,7 @@ class GB_Reports_SS extends Group_Buying_Controller {
 					$total_price = 0;
 					$total_price_qty = 0;
 					$total_earn = 0;
+					$total = 0;
 						
 					// Get totals
 					foreach ( $prices as $price => $data ) {
@@ -188,8 +189,9 @@ class GB_Reports_SS extends Group_Buying_Controller {
 						$total_price += $price;
 						$total_price_qty += $price*$data['qty'];
 						$total_earn += ( $prices[$price]['qty'] * $price ) - $prices[$price]['credits'];
+						$total = $prices[$price]['qty'] * $price;
 					}
-					$average_price = ($total_price_qty/$total_qty);			
+					$average_price = ($total_price_qty/$total_qty);
 					// Records are based on the deal and the results of all of it's purchases.
 					$purchase_array[] = apply_filters( 'gb_sales_summary_record_item', array(
 							'deal_id' => $deal_id,
@@ -197,7 +199,8 @@ class GB_Reports_SS extends Group_Buying_Controller {
 							'qty' => $total_qty,
 							'price' => self::gb_get_formatted_money( $average_price ),
 							'credits' => $total_credits,
-							'earn' => $total_earn
+							'earn' => $total_earn,
+							'total' => $total
 						), $deal );
 				}
 
@@ -205,7 +208,6 @@ class GB_Reports_SS extends Group_Buying_Controller {
 				if ( $multiple ) {
 					$deal_title = ' &rsaquo; <em>' . $deal_title . '</em>';
 				}
-
 				// Loop through each price and make an entry.
 				foreach ( $prices as $price => $data ) {
 					// Records are based on the deal and the results of all of it's purchases.
@@ -215,12 +217,14 @@ class GB_Reports_SS extends Group_Buying_Controller {
 							'qty' => $prices[$price]['qty'],
 							'price' => gb_get_formatted_money( $price ),
 							'credits' => $prices[$price]['credits'],
-							'earn' => ( $prices[$price]['qty'] * $price ) - $prices[$price]['credits']
+							'earn' => ( $prices[$price]['qty'] * $price ) - $prices[$price]['credits'],
+							'total' => $prices[$price]['qty'] * $price
 						), $deal );
 				}
 
 			} // end loop of deals
 		}
+		$gb_report_pages = count( $purchase_array )/10; // set the global for later pagination
 		return $purchase_array;
 	}
 	
