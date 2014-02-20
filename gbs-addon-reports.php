@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Group Buying Addon - Reporting (Sales Summary) with email delivery
-Version: 1.2
+Version: 1.2.1
 Plugin URI: http://groupbuyingsite.com/marketplace
 Description: Adds a custom GBS report
 Author: Sprout Venture
