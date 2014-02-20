@@ -248,7 +248,7 @@ class GB_Reports_SS extends Group_Buying_Controller {
 			'total' => $total_total,
 			'earn' => $total_earn
 		), $deal );
-		$gb_report_pages = count( $purchase_array )/10; // set the global for later pagination
+		$gb_report_pages = count( $purchase_array )/apply_filters( 'gb_reports_show_records', 100, 'sales_summary' ); // set the global for later pagination
 		return $purchase_array;
 	}
 	
