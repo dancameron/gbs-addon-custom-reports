@@ -65,7 +65,7 @@ class GB_Reports_SS extends Group_Buying_Controller {
 			'deal_name' => self::__( 'Deal Name' ),
 			'price' => self::__( 'Price' ),
 			'qty' => self::__( 'Quantity Sold' ),
-			'total' => self::__( 'Total' ),
+			//'total' => self::__( 'Total' ),
 			'credits' => self::__( 'Credits Used' ),
 			'earn' => self::__( 'Earn' )
 		);
@@ -243,7 +243,7 @@ class GB_Reports_SS extends Group_Buying_Controller {
 			'deal_id' => '', // or max($merchants_deal_ids)
 			'deal_name' => self::__('Totals'),
 			'qty' => $total_qty,
-			'price' => '<span style="text-decoration:overline;">'.gb_get_formatted_money( $total_price/$total_qty ).'</span>',
+			//'price' => '<span style="text-decoration:overline;">'.gb_get_formatted_money( $total_price/$total_qty ).'</span>',
 			'credits' => $total_credits,
 			'total' => $total_total,
 			'earn' => $total_earn
