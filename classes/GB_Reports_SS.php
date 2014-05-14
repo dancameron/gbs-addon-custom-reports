@@ -87,11 +87,12 @@ class GB_Reports_SS extends Group_Buying_Controller {
 		$credit_payment_methods = apply_filters( 'set_credit_purchases_methods', array( Group_Buying_Affiliate_Credit_Payments::PAYMENT_METHOD, Group_Buying_Account_Balance_Payments::PAYMENT_METHOD ) );
 
 
-		$total_qty = 0;
-		$total_price = 0;
-		$total_credits = 0;
-		$total_total = 0;
-		$total_earn = 0;
+		$summary_total_qty = 0;
+		$summary_total_price = 0;
+		$summary_total_credits = 0;
+		$summary_total_total = 0;
+		$summary_total_earn = 0;
+
 		$purchase_array = array(); // records array
 		if ( $merchants_deal_ids ) {
 			// loop through all the deals
@@ -181,32 +182,32 @@ class GB_Reports_SS extends Group_Buying_Controller {
 				 */
 				$multiple = ( count( $prices ) > 1 ) ? TRUE : FALSE ;
 				if ( $multiple ) {
-					$total_qty = 0;
-					$total_credits = 0;
-					$total_price = 0;
-					$total_price_qty = 0;
-					$total_earn = 0;
-					$total = 0;
+					$item_total_qty = 0;
+					$item_total_credits = 0;
+					$item_total_price = 0;
+					$item_total_price_qty = 0;
+					$item_total_earn = 0;
+					$item_total = 0;
 						
 					// Get totals
 					foreach ( $prices as $price => $data ) {
-						$total_qty += $data['qty'];
-						$total_credits += $data['credits'];
-						$total_price += $price;
-						$total_price_qty += $price*$data['qty'];
-						$total_earn += ( $prices[$price]['qty'] * $price ) - $prices[$price]['credits'];
-						$total = $prices[$price]['qty'] * $price;
+						$item_total_qty += $data['qty'];
+						$item_total_credits += $data['credits'];
+						$item_total_price += $price;
+						$item_total_price_qty += $price*$data['qty'];
+						$item_total_earn += ( $prices[$price]['qty'] * $price ) - $prices[$price]['credits'];
+						$item_total = $prices[$price]['qty'] * $price;
 					}
-					$average_price = ($total_price_qty/$total_qty);
+					$average_price = ($item_total_price_qty/$item_total_qty);
 					// Records are based on the deal and the results of all of it's purchases.
 					$purchase_array[] = apply_filters( 'gb_sales_summary_record_item', array(
 							'deal_id' => $deal_id,
 							'deal_name' => $deal_title,
-							'qty' => $total_qty,
+							'qty' => $item_total_qty,
 							'price' => self::gb_get_formatted_money( $average_price ),
-							'credits' => $total_credits,
-							'earn' => $total_earn,
-							'total' => $total
+							'credits' => $item_total_credits,
+							'earn' => $item_total_earn,
+							'total' => $item_total
 						), $deal );
 				}
 
@@ -218,11 +219,18 @@ class GB_Reports_SS extends Group_Buying_Controller {
 				// Loop through each price and make an entry.
 				foreach ( $prices as $price => $data ) {
 					// For totals
-					$total_qty += $prices[$price]['qty'];
-					$total_price += $price;
-					$total_credits += $prices[$price]['credits'];
-					$total_total += $prices[$price]['qty'] * $price;
-					$total_earn += ( $prices[$price]['qty'] * $price ) - $prices[$price]['credits'];
+					$total_qty = $prices[$price]['qty'];
+					$total_price = $price;
+					$total_credits = $prices[$price]['credits'];
+					$total_total = $prices[$price]['qty'] * $price;
+					$total_earn = ( $prices[$price]['qty'] * $price ) - $prices[$price]['credits'];
+
+					// for summary
+					$summary_total_qty += $total_qty;
+					$summary_total_price += $total_price;
+					$summary_total_credits += $total_credits;
+					$summary_total_total += $total_total;
+					$summary_total_earn += $total_earn;
 
 					// Records are based on the deal and the results of all of it's purchases.
 					$purchase_array[] = apply_filters( 'gb_sales_summary_record_item', array(
@@ -242,11 +250,11 @@ class GB_Reports_SS extends Group_Buying_Controller {
 		$purchase_array[] = apply_filters( 'gb_sales_summary_record_item', array(
 			'deal_id' => '', // or max($merchants_deal_ids)
 			'deal_name' => self::__('Totals'),
-			'qty' => $total_qty,
+			'qty' => $summary_total_qty,
 			//'price' => '<span style="text-decoration:overline;">'.gb_get_formatted_money( $total_price/$total_qty ).'</span>',
-			'credits' => $total_credits,
-			'total' => $total_total,
-			'earn' => $total_earn
+			'credits' => $summary_total_credits,
+			'total' => $summary_total_total,
+			'earn' => $summary_total_earn
 		), $deal );
 		$gb_report_pages = count( $purchase_array )/apply_filters( 'gb_reports_show_records', 100, 'sales_summary' ); // set the global for later pagination
 		return $purchase_array;
